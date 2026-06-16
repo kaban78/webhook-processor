@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Webhook Processor</title>
+    <style>
+        body { font-family: Arial; margin: 40px; background: #f5f5f5; }
+        .hook { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .received { border-left: 4px solid #ffa500; }
+        .processed { border-left: 4px solid #4caf50; }
+        .hook-id { font-weight: bold; color: #333; }
+        .hook-time { color: #888; font-size: 0.9em; margin-left: 10px; }
+        .hook-status { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.8em; margin-left: 10px; }
+        .status-received { background: #fff3e0; color: #e65100; }
+        .status-processed { background: #e8f5e9; color: #2e7d32; }
+        pre { background: #fafafa; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 0.85em; }
+    </style>
+</head>
+<body>
+    <h1>Webhook Processor</h1>
+    <p>Total hooks: {{ total }}</p>
+    {% for hook in hooks %}
+    <div class="hook {{ hook.data.status }}">
+        <span class="hook-id">#{{ hook.id }}</span>
+        <span class="hook-time">{{ hook.data.timestamp }}</span>
+        <span class="hook-status status-{{ hook.data.status }}">{{ hook.data.status }}</span>
+        <pre>{{ hook.data.body | tojson(indent=2) }}</pre>
+    </div>
+    {% endfor %}
+    {% if not hooks %}
+    <p>No webhooks received yet. Send a POST to /hook to get started.</p>
+    {% endif %}
+</body>
+</html>
