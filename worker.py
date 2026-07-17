@@ -1,45 +1,25 @@
-import redis
+import asyncio
 import json
-import time
-import os
-import signal
+from redis.asyncio import Redis
+from config import settings
 
-REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
-r = redis.Redis(host=REDIS_HOST, port=6379, decode_responses=True)
+async def process_event(event: dict):
+    print(f"Processing event: {event}")
+    await asyncio.sleep(0.5)
 
-running = True
+async def main():
+    redis = Redis.from_url(settings.REDIS_URL, decode_responses=True)
+    queue = settings.REDIS_QUEUE
+    processing_queue = settings.REDIS_PROCESSING_QUEUE
 
-def signal_handler(sig, frame):
-    global running
-    print("\nShutting down worker gracefully...")
-    running = False
+    while True:
+        task = await redis.brpoplpush(queue, processing_queue, timeout=0)
+        try:
+            event = json.loads(task)
+            await process_event(event)
+            await redis.lrem(processing_queue, 0, task)
+        except Exception as e:
+            print(f"Error processing task, left in {processing_queue}: {e}")
 
-signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGTERM, signal_handler)
-
-print("Worker started. Waiting for hooks...")
-
-while running:
-    try:
-        # Ждём задачу из очереди (5 секунд таймаут)
-        task = r.brpop('hooks:queue', timeout=5)
-        
-        if task:
-            data = json.loads(task[1])
-            hook_id = data['id']
-            
-            print(f"Processing hook {hook_id}...")
-            time.sleep(2)  # имитация полезной работы
-            
-            # Обновляем статус
-            data['status'] = 'processed'
-            data['processed_at'] = time.strftime('%Y-%m-%dT%H:%M:%S')
-            r.hset('hooks:processed', hook_id, json.dumps(data))
-            
-            print(f"Hook {hook_id} processed successfully")
-            
-    except Exception as e:
-        print(f"Error: {e}")
-        time.sleep(1)
-
-print("Worker stopped.")
+if __name__ == "__main__":
+    asyncio.run(main())
