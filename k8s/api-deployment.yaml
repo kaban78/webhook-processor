@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhook-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: webhook-api
+  template:
+    metadata:
+      labels:
+        app: webhook-api
+    spec:
+      containers:
+        - name: api
+          image: webhook-processor:latest
+          imagePullPolicy: Never
+          env:
+            - name: MONGODB_URL
+              value: "mongodb://mongo-service:27017"
+            - name: REDIS_URL
+              value: "redis://redis-service:6379/0"
+            - name: WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: webhook-secret
+                  key: secret
+            - name: SERVICE_NAME
+              value: "api"
+          ports:
+            - containerPort: 8000

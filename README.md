@@ -1,27 +1,17 @@
 # Webhook Processor
 
-Платформа для приёма и асинхронной обработки веб-хуков.
+Асинхронный сервис для приёма и обработки вебхуков.
 
-## Архитектура
+## Технологии
+- **FastAPI** – веб-фреймворк
+- **MongoDB** – хранение событий
+- **Redis** – очередь задач
+- **Docker / Docker Compose** – контейнеризация
+- **GitHub Actions** – CI/CD
 
-- **Flask** — принимает HTTP-запросы (POST /hook)
-- **Redis** — очередь сообщений и хранилище статусов
-- **Worker** — фоновая обработка задач
+## Быстрый старт (локально)
 
-## Быстрый старт
-
-```bash
-# Зависимости
-pip install -r requirements.txt
-
-# Терминал 1: Redis
-redis-server
-
-# Терминал 2: Flask
-python app.py
-
-# Терминал 3: Worker
-python worker.py
-
-# Тест
-curl -X POST http://localhost:5000/hook -H "Content-Type: application/json" -d '{"event":"test"}'
+1. Клонируй репозиторий:
+   ```bash
+   git clone https://github.com/kaban78/webhook-processor.git
+   cd webhook-processor

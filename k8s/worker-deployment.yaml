@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhook-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webhook-worker
+  template:
+    metadata:
+      labels:
+        app: webhook-worker
+    spec:
+      containers:
+        - name: worker
+          image: webhook-processor:latest
+          imagePullPolicy: Never
+          env:
+            - name: MONGODB_URL
+              value: "mongodb://mongo-service:27017"
+            - name: REDIS_URL
+              value: "redis://redis-service:6379/0"
+            - name: SERVICE_NAME
+              value: "worker"
